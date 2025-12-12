@@ -64,4 +64,27 @@ locals {
       policy_name    = pair.policy_name
     }
   }
+
+  # Craft a complex object for adding custom managed policies to a permission set
+  permission_set_custom_managed_policy_attachment = {
+    for pair in flatten([
+      for permission_set_name, permission_set_config in merge(local.permission_sets, var.permission_sets) : [
+        for policy_arn in lookup(permission_set_config, "custom_managed_policies", []) : {
+          key            = "${permission_set_name}-${policy_arn}"
+          permission_set = permission_set_name
+          policy_arn     = policy_arn
+        }
+      ]
+      ]) : pair.key => {
+      permission_set = pair.permission_set
+      policy_arn     = pair.policy_arn
+    }
+  }
+
+  # Filter permission sets that have inline policies defined
+  permission_set_inline_policy_attachment = {
+    for permission_set_name, permission_set_config in merge(local.permission_sets, var.permission_sets) :
+    permission_set_name => permission_set_config.inline_policy
+    if lookup(permission_set_config, "inline_policy", null) != null
+  }
 }

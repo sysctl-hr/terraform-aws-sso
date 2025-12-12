@@ -47,4 +47,25 @@ resource "aws_ssoadmin_managed_policy_attachment" "this" {
   permission_set_arn = aws_ssoadmin_permission_set.this[each.value.permission_set].arn
 }
 
-# TODO: add policy attachment for custom policies
+# Assign custom managed policies to a PermissionSet - works only if the policy is already created in the target account
+resource "aws_ssoadmin_customer_managed_policy_attachment" "this" {
+  for_each = local.permission_set_custom_managed_policy_attachment
+
+  instance_arn       = tolist(data.aws_ssoadmin_instances.main.arns)[0]
+  permission_set_arn = aws_ssoadmin_permission_set.this[each.value.permission_set].arn
+
+  customer_managed_policy_reference {
+    name = element(split("/", each.value.policy_arn), length(split("/", each.value.policy_arn)) - 1)
+  }
+}
+
+# Assign inline policies to a PermissionSet
+resource "aws_ssoadmin_permission_set_inline_policy" "this" {
+  for_each = local.permission_set_inline_policy_attachment
+
+  instance_arn       = tolist(data.aws_ssoadmin_instances.main.arns)[0]
+  permission_set_arn = aws_ssoadmin_permission_set.this[each.key].arn
+  inline_policy      = each.value
+}
+
+# TODO: permission boundary on the permission set

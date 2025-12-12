@@ -15,6 +15,26 @@ In short, this moodule handles:
 module "sso" {
   source = "git@github.com:sysctl-hr/terraform-aws-sso.git"
 
+  permission_sets = {
+    "my-custom-permissions" = {
+      description = "My custom permissions"
+      policies = [
+        "arn:aws:iam::aws:policy/ReadOnlyAccess"
+      ]
+      custom_managed_policies = [
+        "name-of-the-policy-in-the-destination-account"
+      ]
+      inline_policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [{
+          Effect   = "Allow"
+          Action   = ["s3:GetObject"]
+          Resource = "*"
+        }]
+      })
+    }
+  }
+
   groups = {
     "Administrators" = {
       members = [

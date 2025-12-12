@@ -13,8 +13,10 @@ variable "groups" {
 variable "permission_sets" {
   description = "Permission set configuration. By default AdministratorAccess and ReadOnlyAccess are created."
   type = map(object({
-    description      = optional(string, null)
-    managed_policies = list(string)
+    description             = optional(string, null)
+    managed_policies        = optional(list(string), [])
+    custom_managed_policies = optional(list(string), [])
+    inline_policy           = optional(string, null)
   }))
   default = {}
 }
